@@ -1,0 +1,59 @@
+app = "beatai-dev-postal"
+primary_region = "iad"
+console_command = "/rails/bin/rails console"
+
+[build]
+
+[env]
+POSTAL_CONFIG_FILE_PATH = "/config/postal.yml"
+BIND_ADDRESS = "0.0.0.0"
+PORT = "5000"
+RAILS_ENV = "production"
+RAILS_SERVE_STATIC_FILES = "true"
+RAILS_FORCE_SSL = "true"
+
+[http_service]
+internal_port = 5000
+force_https = true
+auto_start_machines = true
+auto_stop_machines = "off"
+min_machines_running = 1
+
+  [[http_service.ports]]
+  port = 80
+  handlers = ["http"]
+
+  [[http_service.ports]]
+  port = 443
+  handlers = ["tls", "http"]
+
+[[services]]
+  internal_port = 25
+  protocol = "tcp"
+    
+    [[services.ports]]
+      port = 25
+
+[[services]]
+  internal_port = 587
+  protocol = "tcp"
+
+    [[services.ports]]
+      port = 587
+
+[[services]]
+  internal_port = 2525
+  protocol = "tcp"
+
+    [[services.ports]]
+      port = 2525
+
+
+[[vm]]
+cpu_kind = "shared"
+cpus = 1
+memory_mb = 2048
+
+[mounts]
+source = "postal_config"
+destination = "/config"
