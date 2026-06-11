@@ -35,14 +35,14 @@ min_machines_running = 1
       port = 25
 
 [[services]]
-  internal_port = 587
+  internal_port = 25
   protocol = "tcp"
 
     [[services.ports]]
       port = 587
 
 [[services]]
-  internal_port = 2525
+  internal_port = 25
   protocol = "tcp"
 
     [[services.ports]]

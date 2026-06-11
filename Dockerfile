@@ -35,12 +35,13 @@ RUN gem install bundler -v 2.7.2 --no-doc
 COPY --chown=postal Gemfile Gemfile.lock ./
 RUN bundle install
 
-COPY ./docker/wait-for.sh /docker-entrypoint.sh
+COPY --chmod=0755 ./docker/wait-for.sh /docker-entrypoint.sh
 COPY --chown=postal . .
 
 # normalize line endings (fixes ruby \r issues)
 RUN find . -type f -name "*.rb" -exec dos2unix {} \; || true
 RUN find ./bin -type f -exec dos2unix {} \; || true
+RUN chmod +x ./bin/*
 
 ARG VERSION
 ARG BRANCH
@@ -63,4 +64,4 @@ RUN touch /opt/postal/app/public/assets/.prebuilt
 
 USER root
 
-CMD ["bash", "-c", "chown -R postal:postal /config || true && chmod -R 755 /config || true && postal web-server"]
+CMD ["bash", "/opt/postal/app/docker/run-all.sh"]
