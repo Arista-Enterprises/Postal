@@ -34,3 +34,6 @@ BRANCH
 .rubocop-https*
 .env*
 
+
+# the live Postal signing key must never be committed (spec/20 P0)
+signing.key

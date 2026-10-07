@@ -6,6 +6,11 @@ module SMTPClient
     class SMTPSessionNotStartedError < StandardError
     end
 
+    # Deliberately not an OpenSSL::SSL::SSLError: SMTPSender retries SSL errors
+    # in Auto mode without TLS, which would loop straight back into this guard.
+    class InsecureAuthenticationError < StandardError
+    end
+
     attr_reader :server
     attr_reader :ip_address
     attr_accessor :smtp_client
@@ -82,7 +87,20 @@ module SMTPClient
         @smtp_client.disable_tls
       end
 
-      @smtp_client.start(@source_ip_address ? @source_ip_address.hostname : self.class.default_helo_hostname)
+      helo = @source_ip_address ? @source_ip_address.hostname : self.class.default_helo_hostname
+      if @server.authenticated?
+        # Never send relay credentials in clear text: the plain-text retry in
+        # SMTPSender#connect_to_endpoint (allow_ssl: false) and ssl_mode=Auto
+        # (STARTTLS only if offered) would both do exactly that.
+        unless @smtp_client.tls? || @smtp_client.starttls_always?
+          raise InsecureAuthenticationError, "refusing SMTP AUTH to #{description} without enforced TLS " \
+                                            "(use ssl_mode=TLS or ssl_mode=STARTLS on the relay)"
+        end
+
+        @smtp_client.start(helo, @server.username, @server.password, :login)
+      else
+        @smtp_client.start(helo)
+      end
 
       @smtp_client
     end

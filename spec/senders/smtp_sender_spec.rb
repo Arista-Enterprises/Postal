@@ -560,5 +560,15 @@ RSpec.describe SMTPSender do
         have_attributes(hostname: "test2.example.com", port: 2525, ssl_mode: "TLS"),
       ]
     end
+
+    it "returns relays with credentials" do
+      allow(Postal::Config.postal).to receive(:smtp_relays).and_return([
+                                                                         Hashie::Mash.new(host: "smtp.sendgrid.net", port: 587, ssl_mode: "STARTTLS",
+                                                                                          username: "apikey", password: "SG.secret"),
+                                                                       ])
+      expect(described_class.smtp_relays).to match [
+        have_attributes(hostname: "smtp.sendgrid.net", port: 587, username: "apikey", password: "SG.secret", authenticated?: true),
+      ]
+    end
   end
 end

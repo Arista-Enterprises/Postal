@@ -5,6 +5,7 @@ console_command = "/rails/bin/rails console"
 [build]
 
 [env]
+SMTP_CLIENT_DISABLE_IPV6 = "true"
 POSTAL_CONFIG_FILE_PATH = "/config/postal.yml"
 BIND_ADDRESS = "0.0.0.0"
 PORT = "5000"
