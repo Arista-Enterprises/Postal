@@ -1,18 +1,21 @@
 # See https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
+#
+# Manual only: a push to main no longer deploys. Run it from the Actions tab
+# (or `gh workflow run fly-deploy.yml`) after the audit window, once the CI
+# image build and the test suite are green on the commit being shipped.
 
 name: Fly Deploy
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    concurrency: deploy-group    # ensure only one deploy runs at a time
     steps:
       - uses: actions/checkout@v4
-      - uses: superfly/flyctl-actions/setup-flyctl@master
+      # pinned by SHA (master as of 2026-10-30); bump deliberately
+      - uses: superfly/flyctl-actions/setup-flyctl@98172f70657cb3e15db199af139be99bd3e61200
       - run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

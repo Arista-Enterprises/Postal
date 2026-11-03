@@ -20,6 +20,9 @@ jobs:
   build:
     name: CI Image Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,7 +36,7 @@ jobs:
       - uses: docker/build-push-action@v4
         with:
           push: true
-          tags: ghcr.io/postalserver/postal:ci-${{ github.sha }}
+          tags: ghcr.io/arista-enterprises/postal:ci-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: ci
@@ -42,6 +45,9 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     needs: build
     steps:
       - uses: actions/checkout@v4
@@ -54,14 +60,17 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: docker compose pull
         env:
-          POSTAL_IMAGE: ghcr.io/postalserver/postal:ci-${{ github.sha }}
+          POSTAL_IMAGE: ghcr.io/arista-enterprises/postal:ci-${{ github.sha }}
       - run: docker compose run postal sh -c 'bundle exec rspec'
         env:
-          POSTAL_IMAGE: ghcr.io/postalserver/postal:ci-${{ github.sha }}
+          POSTAL_IMAGE: ghcr.io/arista-enterprises/postal:ci-${{ github.sha }}
 
   release-branch:
     name: Release (branch)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     needs: [build]
     if: >-
       startsWith(github.ref, 'refs/heads/') &&
@@ -80,12 +89,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: info
         run: |
-          IMAGE=ghcr.io/postalserver/postal
+          IMAGE=ghcr.io/arista-enterprises/postal
 
           REF="${GITHUB_REF#refs/heads/}"
           if [ -z "$REF" ]; then exit 1; fi
 
-          VER="$(git describe --tags 2>/dev/null)"
+          # the step runs under bash -e: a repo with no tags must not abort here
+          VER="$(git describe --tags 2>/dev/null || true)"
           echo "version=${VER}" >> "$GITHUB_OUTPUT"
           echo "branch=${REF}" >> "$GITHUB_OUTPUT"
 
@@ -93,7 +103,8 @@ jobs:
           if [[ "$REF" == "main" ]]; then
             echo "${IMAGE}:latest" >> "$GITHUB_OUTPUT"
           else
-            echo "${IMAGE}:branch-${REF}" >> "$GITHUB_OUTPUT"
+            # a "/" in a branch name is not valid in an image tag
+            echo "${IMAGE}:branch-${REF//\//-}" >> "$GITHUB_OUTPUT"
           fi
           echo 'EOF' >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v4
@@ -111,6 +122,9 @@ jobs:
   publish-image:
     name: Publish Image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     needs: [build, test, release-please]
     if: ${{ needs.release-please.outputs.release_created }}
     steps:
@@ -126,8 +140,8 @@ jobs:
         with:
           push: true
           tags: |
-            ghcr.io/postalserver/postal:stable
-            ghcr.io/postalserver/postal:${{ needs.release-please.outputs.version }}
+            ghcr.io/arista-enterprises/postal:stable
+            ghcr.io/arista-enterprises/postal:${{ needs.release-please.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: full
