@@ -2,6 +2,15 @@
 
 This file contains all the latest changes and updates to Postal.
 
+## [3.3.6](https://github.com/Arista-Enterprises/Postal/compare/v3.3.5...3.3.6) (2026-11-03)
+
+
+### Continuous Integration
+
+* branch image tag must not contain '/' ([6e5b48f](https://github.com/Arista-Enterprises/Postal/commit/6e5b48f0db61b0408ed5c38a5813b1972d128cde))
+* publish images to this org's registry, not upstream's ([71c0fe2](https://github.com/Arista-Enterprises/Postal/commit/71c0fe24969b0d14077365c61189150cc38b8b59))
+* release-branch job must not abort when the repo has no tags ([30f80d8](https://github.com/Arista-Enterprises/Postal/commit/30f80d8805afd66e86c119f33251c4dc162e3f89))
+
 ## [3.3.5](https://github.com/postalserver/postal/compare/3.3.4...3.3.5) (2026-02-01)
 
 
